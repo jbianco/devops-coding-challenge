@@ -103,7 +103,9 @@ cat <<EOT >> /tmp/www/index.html
  </html>
 EOT
 
-echo "{\n\t"status": "ok"\n}" > /tmp/www/v1/healthcheck
+echo "{" > /tmp/www/v1/healthcheck
+echo "    \"status\": \"ok\"" >> /tmp/www/v1/healthcheck
+echo "}" >> /tmp/www/v1/healthcheck
 
 sudo cat <<EOT >> /etc/systemd/system/mywebapp.service
 [Unit]

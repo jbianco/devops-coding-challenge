@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-#terraconf="-var-file=dev_env.tfvars"
-terraconf=""
-forced=false
+url=''
+path='/v1/healthcheck'
+
 ## Color definitions ##
 CSTDR="\033[0m"
 CERR="\033[0;31m"
@@ -42,52 +42,38 @@ error(){
 usage(){
     loglevel=$1
     $loglevel "Usage:"
-    $loglevel "\t$0 [-c config file] [-d] [-f]"
+    $loglevel "\t$0 -u <URL> [-p <PATH TO HEALTHCHECK>]"
     $loglevel "\t-c FILE\tUse a specific Terraform .tfvars config FILE"
     $loglevel "\t-d\tEnable terraform debug mode"
     $loglevel "\t-f\tForce apply without running plan"
 }
 
-
-while getopts "h?c:fd" opt; do
+while getopts "h?u:p:" opt; do
     case "$opt" in
     h|\?)
         usage "info"
         exit 0
         ;;
-    c)  terraconf="-var-file=${OPTARG}"
+    u)  url="${OPTARG}"
         ;;
-    d)  export TF_LOG=DEBUG
-        ;;
-    f)  info "Running terraform apply leaving out terraform plan"
-        forced=true
+    p)  path="${OPTARG}"
         ;;
     esac
 done
 
-
-
-run() {
-    cmd=$1
-    info "$cmd"
-    $cmd
-}
-
-if ! $forced
+if [[ -z ${url} ]]
 then
-    run "terraform init"
-    if [ $? -ne 0 ]
-    then
-        error "Terraform project initialization has failed, Please check the output before re-executing it"
-        exit 1
-    fi
-
-    run "terraform plan ${terraconf}"
-    if [ $? -ne 0 ]
-    then
-        error "Terraform plan has failed, Please check the output before re-executing it"
-        exit 1
-    fi
+    error "URL is a mandatory parameter, please complete this parameter and run it again"
+    usage "error"
+    exit 1
 fi
 
-run "terraform apply ${terraconf} -auto-approve"
+status=$(curl -I "$url/$path" 2>/dev/null | head -n 1 | cut -d$' ' -f2)
+
+if [[ "$status" -eq "200" ]]
+then
+    info "The service is properly working"
+else
+    error "The service is not reachable, please check"
+    exit 1
+fi

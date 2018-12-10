@@ -23,14 +23,6 @@ resource "aws_security_group" "server_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  // HTTPS
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   // SSH
   ingress {
     from_port   = 22
