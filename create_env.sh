@@ -76,11 +76,17 @@ run() {
 
 if ! $forced
 then
-    run "terraform plan ${terraconf}"
-
+    run "terraform init"
     if [ $? -ne 0 ]
     then
-        error "Terraform plan has failed, Please check the output before reexecuting it"
+        error "Terraform project initialization has failed, Please check the output before re-executing it"
+        exit 1
+    fi
+
+    run "terraform plan ${terraconf}"
+    if [ $? -ne 0 ]
+    then
+        error "Terraform plan has failed, Please check the output before re-executing it"
         exit 1
     fi
 fi
